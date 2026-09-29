@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة تحكم بوت التذاكر</title>
+<link rel="icon" href="/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><img src="/logo.png" alt="logo"><span data-i18n="brand">لوحة تحكم بوت التذاكر</span></div>
+  <div class="top-actions">
+    <div class="lang-toggle">
+      <button id="btn-ar">AR</button>
+      <button id="btn-en">EN</button>
+    </div>
+    <div id="user-box"></div>
+  </div>
+</header>
+
+<div id="app" class="container"></div>
+
+<footer><span data-i18n="footer">بوت التذاكر — لوحة التحكم</span></footer>
+<div id="toast" class="toast"></div>
+
+<script>
+// ================= الترجمة =================
+const I18N = {
+  ar: {
+    brand: 'لوحة تحكم بوت التذاكر', footer: 'بوت التذاكر — لوحة التحكم',
+    heroTitle: 'تحكم كامل ببوت التذاكر من مكان واحد',
+    heroDesc: 'سجّل دخولك بحساب ديسكورد، اختر السيرفر، وسوّ لكل روم تصنيف تذاكر مستقل بنفسه.',
+    loginBtn: 'تسجيل الدخول عبر ديسكورد', logout: 'تسجيل خروج',
+    yourServers: 'سيرفراتك', yourServersDesc: 'السيرفرات اللي انت ادمن فيها.',
+    manage: 'إدارة', invite: 'إضافة البوت', botOff: 'البوت غير موجود', loading: 'جاري التحميل...',
+    back: 'رجوع للسيرفرات',
+    panelsTitle: 'التصنيفات المستقلة',
+    panelsDesc: 'كل تصنيف عنده رتبته وكاتيجوريه واقسامه الخاصة، وما له علاقة بالتصنيفات الثانية.',
+    noPanels: 'ما فيه تصنيفات بعد. ابدأ بإنشاء واحد بالأسفل.',
+    newPanel: 'إنشاء تصنيف جديد', panelName: 'اسم التصنيف', panelNamePh: 'مثال: الدعم الفني',
+    create: 'إنشاء', deletePanel: 'حذف التصنيف كامل', deleteConfirm: 'متأكد؟ راح يتحذف التصنيف وكل اقسامه.',
+    supportRoles: 'الرتب المسؤولة', category: 'الكاتيجوري', categoryNone: '— بدون —', logChannel: 'روم اللوق',
+    archiveCategory: 'كاتيجوري الارشيف (عند الاغلاق)', archiveHint: 'اختياري: تنتقل التذكرة لهذي الكاتيجوري بدل ما تبقى مكانها.',
+    save: 'حفظ', saved: 'تم الحفظ ✅',
+    sections: 'الاقسام', name: 'الاسم', description: 'الوصف', emoji: 'ايموجي',
+    addSection: 'إضافة قسم', delete: 'حذف', noSections: 'ما فيه اقسام مضافة، راح تظهر الاقسام الافتراضية.',
+    namePh: 'مثال: استفسار', descPh: 'وصف قصير (اختياري)', emojiPh: '🎫 (اختياري)',
+    errGeneric: 'صار خطأ، حاول مرة ثانية.', errNameTaken: 'فيه تصنيف بنفس الاسم موجود.',
+    botNotIn: 'البوت مو موجود في هذا السيرفر بعد.',
+    welcomeTitle: 'الترحيب بالاعضاء الجدد',
+    welcomeDesc: 'رسالة ترحيب، رتبة تلقائية للاعضاء ورتبة للبوتات، وصورة ترحيب اختيارية.',
+    welcomeChannel: 'روم الترحيب', welcomeMsg: 'نص الرسالة',
+    welcomeMsgPh: 'اهلاً {user} في {السيرفر} 🎉 — متاح: {user} {اسم} {السيرفر} {العدد}',
+    memberRole: 'رتبة الاعضاء', botRole: 'رتبة البوتات',
+    welcomeImgTitle: 'خلفية صورة الترحيب', welcomeImgDesc: 'ارفع صورة او GIF متحرك، وحرك دائرة صورة العضو فوقها بالسحب.',
+    uploadBg: 'رفع خلفية', dragHint: 'اسحب الدائرة لتحديد مكان صورة العضو', avatarSize: 'حجم صورة العضو',
+    savePosition: 'حفظ الموضع', deleteImage: 'حذف الخلفية', noImage: 'ما فيه خلفية مرفوعة.',
+  },
+  en: {
+    brand: 'Ticket Bot Dashboard', footer: 'Ticket Bot — Dashboard',
+    heroTitle: 'Full control over your ticket bot in one place',
+    heroDesc: 'Log in with Discord, pick a server, and give every room its own independent ticket category.',
+    loginBtn: 'Login with Discord', logout: 'Log out',
+    yourServers: 'Your servers', yourServersDesc: 'Servers where you have admin permissions.',
+    manage: 'Manage', invite: 'Add bot', botOff: 'Bot not present', loading: 'Loading...',
+    back: 'Back to servers',
+    panelsTitle: 'Independent categories',
+    panelsDesc: 'Each category has its own roles, channel category and sections — fully separate from the others.',
+    noPanels: 'No categories yet. Create one below.',
+    newPanel: 'Create new category', panelName: 'Category name', panelNamePh: 'e.g. Tech Support',
+    create: 'Create', deletePanel: 'Delete entire category', deleteConfirm: 'Are you sure? This deletes the category and all its sections.',
+    supportRoles: 'Support roles', category: 'Channel category', categoryNone: '— none —', logChannel: 'Log channel',
+    archiveCategory: 'Archive category (on close)', archiveHint: 'Optional: the ticket moves here instead of staying in place.',
+    save: 'Save', saved: 'Saved ✅',
+    sections: 'Sections', name: 'Name', description: 'Description', emoji: 'Emoji',
+    addSection: 'Add section', delete: 'Delete', noSections: 'No sections added yet — default sections will show.',
+    namePh: 'e.g. Inquiry', descPh: 'Short description (optional)', emojiPh: '🎫 (optional)',
+    errGeneric: 'Something went wrong, try again.', errNameTaken: 'A category with this name already exists.',
+    botNotIn: 'The bot is not in this server yet.',
+    welcomeTitle: 'Welcome new members',
+    welcomeDesc: 'A welcome message, an auto-role for members, one for bots, and an optional welcome image.',
+    welcomeChannel: 'Welcome channel', welcomeMsg: 'Message text',
+    welcomeMsgPh: 'Welcome {user} to {السيرفر} 🎉 — available: {user} {اسم} {السيرفر} {العدد}',
+    memberRole: 'Member role', botRole: 'Bot role',
+    welcomeImgTitle: 'Welcome background image', welcomeImgDesc: 'Upload an image or an animated GIF, then drag the circle to place the member avatar.',
+    uploadBg: 'Upload background', dragHint: 'Drag the circle to set the avatar position', avatarSize: 'Avatar size',
+    savePosition: 'Save position', deleteImage: 'Delete background', noImage: 'No background uploaded yet.',
+  },
+};
+let lang = localStorage.getItem('lang') || 'ar';
+function t(k) { return I18N[lang][k] || k; }
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('btn-ar').classList.toggle('active', lang === 'ar');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+}
+document.getElementById('btn-ar').onclick = () => { lang = 'ar'; localStorage.setItem('lang', lang); applyLang(); route(); };
+document.getElementById('btn-en').onclick = () => { lang = 'en'; localStorage.setItem('lang', lang); applyLang(); route(); };
+
+// ================= ادوات عامة =================
+const app = document.getElementById('app');
+function toast(msg, isError) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => (el.className = 'toast'), 2500);
+}
+async function j(url, opts) {
+  const r = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(data.error || 'error'), { status: r.status, code: data.error });
+  return data;
+}
+function avatarUrl(u) {
+  return u.avatar ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`
+    : `https://cdn.discordapp.com/embed/avatars/${Number(u.id?.slice(-1) || 0) % 5}.png`;
+}
+function guildIcon(g) { return g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=64` : '/logo.png'; }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// ================= الحالة =================
+let me = null;
+async function loadMe() { me = (await j('/api/me')).user; renderUserBox(); }
+function renderUserBox() {
+  const box = document.getElementById('user-box');
+  if (!me) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div style="display:flex;align-items:center;gap:10px">
+    <img src="${avatarUrl(me)}" style="width:32px;height:32px;border-radius:50%">
+    <button class="btn secondary sm" id="logout-btn">${t('logout')}</button></div>`;
+  document.getElementById('logout-btn').onclick = async () => {
+    await fetch('/auth/logout', { method: 'POST' });
+    me = null; location.hash = '#/'; renderUserBox(); route();
+  };
+}
+
+// ================= الصفحات =================
+function pageLogin() {
+  app.innerHTML = `
+    <div class="hero">
+      <img class="logo" src="/logo.png">
+      <h1>${t('heroTitle')}</h1>
+      <p>${t('heroDesc')}</p>
+      <a class="btn" href="/auth/login">${t('loginBtn')}</a>
+    </div>`;
+}
+
+async function pageGuilds() {
+  app.innerHTML = `<div class="spinner">${t('loading')}</div>`;
+  try {
+    const { guilds, inviteBase } = await j('/api/guilds');
+    app.innerHTML = `
+      <div class="card">
+        <h2>${t('yourServers')}</h2>
+        <p class="muted">${t('yourServersDesc')}</p>
+        <div class="guild-grid">
+          ${guilds.map((g) => `
+            <div class="guild-card">
+              <img src="${guildIcon(g)}">
+              <div class="name">${escapeHtml(g.name)}</div>
+              ${g.botPresent
+                ? `<span class="badge">●</span><a class="btn sm" href="#/guild/${g.id}">${t('manage')}</a>`
+                : `<span class="badge off">${t('botOff')}</span><a class="btn secondary sm" target="_blank" href="${inviteBase}&guild_id=${g.id}">${t('invite')}</a>`}
+            </div>`).join('') || `<p class="muted">—</p>`}
+        </div>
+      </div>`;
+  } catch { toast(t('errGeneric'), true); }
+}
+
+async function pageGuildSettings(id) {
+  app.innerHTML = `<div class="spinner">${t('loading')}</div>`;
+  let data;
+  try { data = await j(`/api/guilds/${id}`); }
+  catch { app.innerHTML = `<a class="back-link" href="#/">← ${t('back')}</a><div class="card">${t('botNotIn')}</div>`; return; }
+
+  const { roles, categories, textChannels } = data;
+  let panels = data.panels;
+
+  function shell() {
+    app.innerHTML = `
+      <a class="back-link" href="#/">← ${t('back')}</a>
+      <div class="card">
+        <h2>${t('panelsTitle')}</h2>
+        <p class="muted">${t('panelsDesc')}</p>
+      </div>
+      <div id="panels-list"></div>
+      <div class="card">
+        <h3>${t('newPanel')}</h3>
+        <div class="row">
+          <input id="new-panel-name" type="text" placeholder="${t('panelNamePh')}">
+          <button class="btn" id="create-panel">${t('create')}</button>
+        </div>
+      </div>`;
+    document.getElementById('create-panel').onclick = async () => {
+      const name = document.getElementById('new-panel-name').value.trim();
+      if (!name) return;
+      try {
+        const r = await j(`/api/guilds/${id}/panels`, { method: 'POST', body: JSON.stringify({ name, supportRoles: [] }) });
+        panels = r.panels;
+        renderPanelsList();
+        document.getElementById('new-panel-name').value = '';
+        toast(t('saved'));
+      } catch (e) { toast(e.code === 'name_taken' ? t('errNameTaken') : t('errGeneric'), true); }
+    };
+    renderPanelsList();
+  }
+
+  function renderPanelsList() {
+    const list = document.getElementById('panels-list');
+    const entries = Object.entries(panels);
+    if (!entries.length) { list.innerHTML = `<div class="card muted">${t('noPanels')}</div>`; return; }
+    list.innerHTML = entries.map(([pid, p]) => panelCard(pid, p)).join('');
+    entries.forEach(([pid]) => wirePanel(pid));
+  }
+
+  function panelCard(pid, p) {
+    const selected = new Set(p.supportRoles);
+    return `
+    <div class="card panel-card" data-pid="${pid}">
+      <div class="row" style="align-items:center">
+        <h3 style="flex:2">📁 ${escapeHtml(p.name)}</h3>
+        <button class="btn danger sm del-panel" data-pid="${pid}" style="flex:0">${t('deletePanel')}</button>
+      </div>
+
+      <label>${t('panelName')}</label>
+      <input type="text" class="panel-name" value="${escapeHtml(p.name)}">
+
+      <label>${t('supportRoles')}</label>
+      <div class="role-grid role-grid-${pid}">
+        ${roles.map((r) => `<div class="role-chip ${selected.has(r.id) ? 'active' : ''}" data-id="${r.id}">${escapeHtml(r.name)}</div>`).join('') || '<p class="muted">—</p>'}
+      </div>
+
+      <div class="row">
+        <div>
+          <label>${t('category')}</label>
+          <select class="category-select">
+            <option value="">${t('categoryNone')}</option>
+            ${categories.map((c) => `<option value="${c.id}" ${p.categoryId === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label>${t('logChannel')}</label>
+          <select class="log-select">
+            <option value="">${t('categoryNone')}</option>
+            ${textChannels.map((c) => `<option value="${c.id}" ${p.logChannelId === c.id ? 'selected' : ''}>#${escapeHtml(c.name)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <label>${t('archiveCategory')}</label>
+      <select class="archive-select">
+        <option value="">${t('categoryNone')}</option>
+        ${categories.map((c) => `<option value="${c.id}" ${p.archiveCategoryId === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
+      </select>
+      <p class="muted" style="margin-top:4px">${t('archiveHint')}</p>
+
+      <div style="margin-top:14px"><button class="btn save-panel" data-pid="${pid}">${t('save')}</button></div>
+
+      <h3 style="margin-top:26px">${t('sections')}</h3>
+      <table>
+        <thead><tr><th>${t('name')}</th><th>${t('description')}</th><th>${t('emoji')}</th><th></th></tr></thead>
+        <tbody class="options-body">
+          ${p.options.length ? p.options.map(optRow).join('') : `<tr><td colspan="4" class="muted">${t('noSections')}</td></tr>`}
+        </tbody>
+      </table>
+      <div class="row" style="margin-top:14px">
+        <input class="opt-name" type="text" placeholder="${t('namePh')}">
+        <input class="opt-desc" type="text" placeholder="${t('descPh')}">
+        <input class="opt-emoji" type="text" placeholder="${t('emojiPh')}" style="max-width:120px">
+        <button class="btn add-option" data-pid="${pid}">${t('addSection')}</button>
+      </div>
+    </div>`;
+  }
+
+  function optRow(o) {
+    return `<tr>
+      <td>${o.emoji ? o.emoji + ' ' : ''}${escapeHtml(o.label)}</td>
+      <td>${escapeHtml(o.description || '—')}</td>
+      <td>${o.emoji || '—'}</td>
+      <td><button class="btn danger sm del-opt" data-value="${o.value}">${t('delete')}</button></td>
+    </tr>`;
+  }
+
+  function wirePanel(pid) {
+    const card = document.querySelector(`.panel-card[data-pid="${pid}"]`);
+
+    card.querySelector(`.role-grid-${pid}`).onclick = (e) => {
+      const chip = e.target.closest('.role-chip');
+      if (chip) chip.classList.toggle('active');
+    };
+
+    card.querySelector('.del-panel').onclick = async () => {
+      if (!confirm(t('deleteConfirm'))) return;
+      const r = await j(`/api/guilds/${id}/panels/${pid}`, { method: 'DELETE' });
+      panels = r.panels;
+      renderPanelsList();
+    };
+
+    card.querySelector('.save-panel').onclick = async () => {
+      const name = card.querySelector('.panel-name').value.trim();
+      const supportRoles = [...card.querySelectorAll('.role-chip.active')].map((el) => el.dataset.id);
+      const categoryId = card.querySelector('.category-select').value;
+      const logChannelId = card.querySelector('.log-select').value;
+      try {
+        const r = await j(`/api/guilds/${id}/panels/${pid}`, { method: 'PUT', body: JSON.stringify({ name, supportRoles, categoryId, logChannelId }) });
+        panels[pid] = r.panel;
+        toast(t('saved'));
+        renderPanelsList();
+      } catch (e) { toast(t('errGeneric'), true); }
+    };
+
+    card.querySelector('.add-option').onclick = async () => {
+      const label = card.querySelector('.opt-name').value.trim();
+      if (!label) return;
+      const description = card.querySelector('.opt-desc').value.trim();
+      const emoji = card.querySelector('.opt-emoji').value.trim();
+      try {
+        const r = await j(`/api/guilds/${id}/panels/${pid}/options`, { method: 'POST', body: JSON.stringify({ label, description, emoji }) });
+        panels[pid].options = r.options;
+        renderPanelsList();
+        toast(t('saved'));
+      } catch { toast(t('errGeneric'), true); }
+    };
+
+    card.querySelector('.options-body').onclick = async (e) => {
+      const btn = e.target.closest('.del-opt');
+      if (!btn) return;
+      const r = await j(`/api/guilds/${id}/panels/${pid}/options/${btn.dataset.value}`, { method: 'DELETE' });
+      panels[pid].options = r.options;
+      renderPanelsList();
+    };
+  }
+
+  shell();
+}
+
+// ================= التوجيه =================
+async function route() {
+  applyLang();
+  if (!me) { pageLogin(); return; }
+  const hash = location.hash || '#/';
+  const m = hash.match(/^#\/guild\/(\d+)/);
+  if (m) pageGuildSettings(m[1]); else pageGuilds();
+}
+window.addEventListener('hashchange', route);
+(async () => { applyLang(); await loadMe(); route(); })();
+</script>
+</body>
+</html>
